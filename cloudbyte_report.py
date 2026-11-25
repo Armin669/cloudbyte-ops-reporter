@@ -18,9 +18,7 @@ def count_and_rank(records, get_key):
         key = get_key(record)
         counts[key] = counts.get(key, 0) + 1
 
-    pairs = []
-    for key, count in counts.items():
-        pairs.append((count, key))
+    pairs = [(count, key) for key, count in counts.items()]
     pairs.sort(key=by_count_then_name)
     return pairs
 
@@ -29,7 +27,7 @@ def get_action(record):
 
 def main():
     with open("cloudbyte_access.log") as f:
-        records = f.readlines()
+        records = [line for line in f]
 
     first = records[0].split()[0].replace("T", " ")
     last = records[-1].split()[0].replace("T", " ")
@@ -60,6 +58,19 @@ def main():
     action_pairs = count_and_rank(records, get_action)
     for rank, (count, action) in enumerate(action_pairs, start=1):
         print(f"  {rank}. {action}: {count} events")
+
+    print()
+    print("Most active logins")
+    login_records = [record for record in records if get_action(record) == "login"]
+    for rank, (count, user) in enumerate(count_and_rank(login_records, get_user), 1):
+        print(f"  {rank}. {user}: {count} events")
+
+    print()
+    person = "alice"
+    print(f"Activity for {person}")
+    person_records = [record for record in records if get_user(record) == person]
+    for rank, (count, action) in enumerate(count_and_rank(person_records, get_action), 1):
+        print(f"  {rank}. {action}: {count} events")      
 
     print("Busiest hours")
     hour_pairs = count_and_rank(records, get_hour)
